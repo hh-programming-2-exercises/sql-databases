@@ -1,23 +1,22 @@
-> [!NOTE]  
-> The English translation for this exercise can be found in [this file](./readme.en.md).
+# Using SQL databases with Java
 
-# SQL-tietokantojen käyttö Javasta käsin
+In this assignment, we will learn how to connect to a database from a Java program and perform simple CRUD operations (Create, Read, Update & Delete). Along the way, we will get acquainted with concepts such as JDBC, DAO, and PreparedStatement. To support the exercises, we recommend the following materials:
 
-Tässä tehtävässä opettelemme muodostamaan yhteyden tietokantaan Java-ohjelmasta käsin ja tekemään yksinkertaisia CRUD-toimenpiteitä (Create, Read, Update & Delete). Tutustumme ohessa käsitteisiin kuten JDBC, DAO ja PreparedStatement.
-
+- [Java Database Connectivity (Telusko, YouTube)](https://youtu.be/7v2OnUti2eM)
+- [Introduction to JDBC (baeldung.com)](https://www.baeldung.com/java-jdbc)
+- [Lesson examples](https://github.com/hh-programming-2/lessons?tab=readme-ov-file#lesson-6-database-connection-with-java-jdbc)
 
 ## JDBC – Java Database Connectivity
 
-Javan standardikirjastoon määritelty [JDBC (Java Database Connectivity) -ohjelmointirajapinta](https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/) mahdollistaa Java-sovellusten yhdistämisen eri tyyppisiin SQL-tietokantoihin ja erilaisten kyselyiden sekä päivitysten tekemisen Java-koodista käsin.
+The [JDBC (Java Database Connectivity) API](https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/) defined in the Java standard library allows Java applications to connect to various types of SQL databases and perform different queries and updates from within Java code.
 
-JDBC ei rajoita sitä, minkä SQL-pohjaisten tietokantojen kanssa sitä voidaan käyttää, vaan eri tietokantoja voidaan hyödyntää käyttämällä niille toteutettuja valmiita ajureita. Sillä ei siis Java-koodisi näkökulmasta ole eroa, käytätkö tietokantana esimerkiksi [MySQL](https://www.mysql.com/)-, [PostgreSQL](https://www.postgresql.org/)- vai [SQLite](https://www.sqlite.org/index.html)-tyyppistä tietokantaa.
+JDBC does not limit which SQL-based databases it can be used with; different databases can be utilized by using the drivers implemented for them. Therefore, from the perspective of your Java code, it does not matter whether you use a [MySQL](https://www.mysql.com/), [PostgreSQL](https://www.postgresql.org/), or [SQLite](https://www.sqlite.org/index.html) type database.
 
-Tässä tehtävässä voit käyttää valintasi mukaan joko **MySQL**- tai **SQLite**-tietokantaa. Oletuksena käytämme tiedostopohjaista SQLite-tietokantaa. SQLiten kanssa emme tarvitse erillistä tietokantapalvelinta, joten meidän ei tarvitse huolehtia verkkoyhteyksistä, salasanoista tai asennuksista.
-
+In this assignment, you can use either a **MySQL** or **SQLite** database according to your preference. By default, we will use the file-based SQLite database. With SQLite, we do not need a separate database server, so we do not have to worry about network connections, passwords, or installations.
 
 ## SQLite
 
-SQLite-tietokanta on paikallinen muisti- tai tiedostopohjainen tietokanta, joka ei vaadi erillistä palvelinta, vaan se voidaan "sulauttaa" (embed) osaksi omaa sovellustamme:
+SQLite is a local memory or file-based database that does not require a separate server; instead, it can be "embedded" as part of our application:
 
 > *"In contrast to many other database management systems, SQLite is not a client–server database engine. Rather, it is embedded into the end program."*
 >
@@ -25,25 +24,23 @@ SQLite-tietokanta on paikallinen muisti- tai tiedostopohjainen tietokanta, joka 
 >
 > [https://en.wikipedia.org/wiki/SQLite](https://en.wikipedia.org/wiki/SQLite)
 
-SQLite toimii Java-ohjelman näkökulmasta samalla tavalla kuin erilliset tietokantapalvelimet. Myös SQL-kyselyt ovat pääosin samat, esimerkiksi `SELECT ArtistId, Name FROM Artist`. "Keveydestään" ja tiedostopohjaisuudestaan huolimatta SQLite on erittäin merkityksellinen tietokanta ja sitä [käytetäänkin mm. suosituimmissa verkkoselaimissa ja puhelimissa](https://www.sqlite.org/famous.html):
+From the perspective of a Java program, SQLite operates in the same way as separate database servers. The SQL queries are also mostly the same, for example, `SELECT ArtistId, Name FROM Artist`. Despite its "lightweight" and file-based nature, SQLite is a very significant database and [is used in popular web browsers and phones](https://www.sqlite.org/famous.html):
 
 > *"SQLite is built into all mobile phones and most computers and comes bundled inside countless other applications that people use every day."*
 >
 > https://www.sqlite.org/
 
-Harjoituksessa käytettävä SQLite-tietokanta löytyy valmiina tiedostona tämän projektin [data](./data/)-hakemistosta.
+The SQLite database used in the assignment can be found as a ready-made file in the [data](./data/) directory of this project.
 
+## ⭐ Bonus: MySQL
 
-## ⭐ MySQL
+Using a MySQL database requires a database server and creating a database on that server. The Programming 2 course can only provide limited guidance on installing the MySQL server and creating the database. However, we encourage you to use MySQL in this assignment if you can manage it independently.
 
-MySQL-tietokannan käyttäminen edellyttää tietokantapalvelinta ja tietokannan luontia kyseiselle palvelimelle. Ohjelmointi 2 -kurssin puolesta MySQL-palvelimen asennukseen ja tietokannan luontiin voidaan antaa vain rajallisesti ohjausta. Kannustamme kuitenkin käyttämään tässä harjoituksessa MySQL:ää, mikäli pystyt käyttämään sitä itseohjautuvasti.
+The creation scripts for the MySQL database used in the exercises can be found in the file [data/Chinook_MySql_AutoIncrementPKs.sql](./data/Chinook_MySql_AutoIncrementPKs.sql).
 
-Harjoituksissa käytettävän MySQL-tietokannan luontiskriptit löytyvät valmiina tiedostosta [data/Chinook_MySql_AutoIncrementPKs.sql](./data/Chinook_MySql_AutoIncrementPKs.sql).
+## Adding the driver to the project
 
-
-## Ajurin lisääminen projektiin
-
-JDBC-ajurit, kuten muutkin riippuvuudet, [voidaan ladata itse verkosta ja sijoittaa projektin hakemistoihin](https://www.google.com/search?q=add+jar+file+to+build+path). Riippuvuuksien hallinta on kuitenkin huomattavasti helpompaa, mikäli käytämme automaatiotyökalua kuten Gradle tai Maven. Tässä tehtäväpohjassa sekä SQLite- että MySQL-ajurit ovat  valmiiksi määritettynä Gradle:n [build.gradle](./build.gradle)-tiedostoon, josta koodieditorisi osaa asentaa ne automaattisesti:
+JDBC drivers, like other dependencies, [can be downloaded from the internet and placed in the project directories](https://www.google.com/search?q=add+jar+file+to+build+path). However, dependency management is much easier if we use an automation tool like Gradle or Maven. In this assignment template, both SQLite and MySQL drivers are pre-configured in Gradle's [build.gradle](./build.gradle) file, from which your code editor can automatically install them:
 
 ```groovy
 dependencies {
@@ -59,14 +56,14 @@ dependencies {
 }
 ```
 
-Oletuksena projektissa on riippuvuuksina SQLite:n JDBC-ajuri sekä ajurin käyttämä [SLF4J-lokituskirjasto](https://stackify.com/slf4j-java/).
+By default, the project includes dependencies for SQLite's JDBC driver and the [SLF4J logging library](https://stackify.com/slf4j-java/) used by the driver.
 
-💡 *Voit poistaa kommentit MySQL-ajurin rivin alusta, mikäli haluat käyttää harjoituksessa MySQL-tietokantaa.*
+> [!NOTE]
+> You can uncomment the line for the MySQL driver if you want to use a MySQL database in the assignment.
 
+## Ready-made music database
 
-## Valmis musiikkitietokanta
-
-Käytämme tässä tehtävässä valmista musiikkitietokantaa nimeltä [**Chinook**](https://github.com/lerocha/chinook-database):
+In this assignment, we will use a ready-made music database called [**Chinook**](https://github.com/lerocha/chinook-database):
 
 > *"Chinook is a sample database available for SQL Server, Oracle, MySQL, etc."*
 >
@@ -74,9 +71,9 @@ Käytämme tässä tehtävässä valmista musiikkitietokantaa nimeltä [**Chinoo
 >
 > [Luis Rocha, Chinook Database](https://github.com/lerocha/chinook-database)
 
-Chinook-tietokannan tiedostot sijaitsevat valmiiksi tämän tehtäväpohjan [data](./data/)-hakemistossa.
+The Chinook database files are already located in the [data](./data/) directory of this exercise template.
 
-Chinook-tietokanta sisältää lukuisia tietokantatauluja ja paljon valmista dataa, mutta tässä harjoituksessa käytämme ainoastaan `Artist`- ja `Album`-tauluja. Kaikki muut taulut voit jättää harjoitustyössäsi huomioimatta:
+The Chinook database contains numerous tables and a lot of pre-existing data, but in this assignment, we will only use the `Artist` and `Album` tables. You can ignore all other tables in your assignment:
 
 ```mermaid
 classDiagram
@@ -119,29 +116,30 @@ classDiagram
   Track --|> Genre: GenreId
 ```
 
-💡 *Voit vapaasti tutkia SQLite tietokannan sisältöä avaamalla sen [SQLite-komentorivityökalulla](https://sqlite.org/cli.html) tai jollain [lukuisista graafisista käyttöliittymistä](https://www.google.com/search?q=sqlite+gui). MySQL-tietokannan tutkimisessa voit käyttää valitsemaasi työkalua.*
+> [!NOTE]
+> You are free to explore the contents of the SQLite database by opening it with the [SQLite command-line tool](https://sqlite.org/cli.html) or one of the [many graphical interfaces](https://www.google.com/search?q=sqlite+gui). For exploring the MySQL database, you can use the tool of your choice.
 
-💡 *Jos tulet vahingossa muuttaneeksi tiedostoja ja haluat perua muutoksen, voit palauttaa versionhallinnasta viimeisimmän version komennolla `git restore data/TIEDOSTONIMI`. Windowsissa muuta kauttaviivan `/` tilalle kenoviiva `\`.*
+> [!TIP] 
+> If you accidentally modify files and want to revert the changes, you can restore the latest version from version control with the command `git restore data/FILENAME`. On Windows, replace the forward slash `/` with a backslash `\`.
 
-**Lisätietoja tietokannasta:**
+### More Information about the database
 
-* UML-kaavio: [Chinook-tietokannan Wiki](https://github.com/lerocha/chinook-database/wiki/Chinook-Schema)
-* Valmis tietokanta: [Chinook_Sqlite.sqlite](https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite)
-* Dokumentaatio: https://github.com/lerocha/chinook-database
-* SQL-luontikäskyt: [Chinook_Sqlite.sql](https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sql)
-* Tietokannan lisenssi: [MIT](https://github.com/lerocha/chinook-database/blob/master/LICENSE.md)
+* UML Diagram: [Chinook Database Wiki](https://github.com/lerocha/chinook-database/wiki/Chinook-Schema)
+* Ready-made Database: [Chinook_Sqlite.sqlite](https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite)
+* Documentation: https://github.com/lerocha/chinook-database
+* SQL Creation Commands: [Chinook_Sqlite.sql](https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sql)
+* Database License: [MIT](https://github.com/lerocha/chinook-database/blob/master/LICENSE.md)
 
+## Running the main program
 
-## Pääohjelman suorittaminen
-
-Tehtäväpohja sisältää pääohjelman [**JdbcDemoMain**](./src/main/java/databases/part01/JdbcDemoMain.java). Tämä pääohjelman tarkoitus on auttaa sinua hahmottamaan ja kokeilemaan, miten yhteyksiä muodostetaan ja miten niiden avulla voidaan suorittaa kyselyitä. Voit suorittaa [pääohjelman](./src/main/java/databases/part01/JdbcDemoMain.java) joko koodieditorisi run-painikkeella tai Gradle:n avulla:
+The task template includes the main program [**JdbcDemoMain**](./src/main/java/databases/part01/JdbcDemoMain.java). The purpose of this main program is to help you understand and experiment with how connections are established and how queries can be executed using them. You can run the [main program](./src/main/java/databases/part01/JdbcDemoMain.java) either using the run button in your code editor or with Gradle:
 
 ```sh
 ./gradlew run       # Unix
 .\gradlew.bat run   # Windows
 ```
 
-Kun suoritat ohjelman, se tulostaa kaikkien tietokannassa valmiiksi olevien artistien nimet järjestettynä niiden `ArtistId`:n mukaan:
+When you run the program, it will print the names of all the artists already in the database, sorted by their `ArtistId`:
 
 ```
 AC/DC
@@ -152,32 +150,34 @@ Alice In Chains
 ...
 ```
 
-Tehtävän seuraavissa vaiheissa tätä tulostetta muutetaan hieman.
+In the next steps of the exercise, this output will be slightly modified.
 
-⭐ *Pääohjelma käyttää oletuksena SQLite-tietokantaa, joten joudut muuttamaan yhteysosoitteen tunnuksineen vastaamaan MySQL-tietokantaasi, mikäli käytät MySQL:ää.*
+> [!NOTE]
+> The main program uses an SQLite database by default, so you will need to change the connection URL and credentials to match your MySQL database if you are using MySQL.
 
-💡 *Jos suoritat ohjelman VS Code:lla ja törmäät virheeseen `SQLException: path to 'data/Chinook_Sqlite.sqlite' does not exist`, avaa projekti uudestaan "Open Folder..."-valikon kautta. SQLite-tietokannan osoite on esitetty koodissa **suhteellisena polkuna** projektin päähakemistoon nähden, joten VS Code:ssa tulee olla auki päähakemisto, joka sisältää mm. tämän readme.md-tiedoston.*
+> [!TIP] 
+> If you run the program in VS Code and encounter the error `SQLException: path to 'data/Chinook_Sqlite.sqlite' does not exist`, reopen the project through the "Open Folder..." menu. The SQLite database path is specified in the code as a **relative path** to the project's root directory, so the root directory containing this readme.md file must be open in VS Code.
 
-## JDBC:n perusteet
+## JDBC basics
 
-Tietokantaoperaatiot tehdään JDBC:ssä kolmen keskeisen luokan avulla: **Connection**, **PreparedStatement** ja **ResultSet**. Näillä kolmella on keskeinen rooli tietokantaan yhteyden muodostamisessa, tietokantakyselyiden suorittamisessa ja tulosten käsittelyssä.
+Database operations in JDBC are performed using three key classes: **Connection**, **PreparedStatement**, and **ResultSet**. These three play a central role in establishing a connection to the database, executing queries, and handling the results.
 
-1. **[Connection (yhteys)](https://docs.oracle.com/javase/8/docs/api/java/sql/Connection.html)**
-    - Yhteys mahdollistaa sovelluksen ja tietokannan välisen vuorovaikutuksen.
-    - Yhteydenmuodostus vaatii tietokannan tiedot, kuten SQLite-tiedoston sijainnin. Se voi vaatia myös mm. tietokantapalvelimen osoitteen, käyttäjätunnuksen ja salasanan.
-    - Yhteys tulee sulkea käytön jälkeen, jotta käytössä olevat resurssit vapautuvat uudelleenkäytettäviksi.
+1. **[Connection](https://docs.oracle.com/javase/8/docs/api/java/sql/Connection.html)**
+    - The connection enables interaction between the application and the database.
+    - Establishing a connection requires database details, such as the location of the SQLite file. It may also require the database server address, username, and password.
+    - The connection should be closed after use to free up resources for reuse.
 
-2. **[PreparedStatement (SQL-lauseke)](https://docs.oracle.com/javase/8/docs/api/java/sql/PreparedStatement.html)**
-    - Tapa suorittaa SQL-kyselyitä tietokannassa Java-sovelluksessa.
-    - Mahdollistaa SQL-kyselyjen parametrien syöttämisen turvallisesti.
-    - Auttaa estämään SQL-injektiota.
+2. **[PreparedStatement](https://docs.oracle.com/javase/8/docs/api/java/sql/PreparedStatement.html)**
+    - A way to execute SQL queries in the database from a Java application.
+    - Allows for the safe input of SQL query parameters.
+    - Helps prevent SQL injection.
 
-3. **[ResultSet (tulokset)](https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html)**
-    - ResultSet on tietokannasta saatava tulosjoukko, joka sisältää kyselyn tulokset.
-    - ResultSetissä tiedot ovat organisoituina riveihin ja sarakkeisiin.
-    - Tulostaulukkoa käytetään tavallisesti silmukan avulla, joka kulkee läpi tulokset ja noutaa tarvittavat tiedot.
+3. **[ResultSet](https://docs.oracle.com/javase/8/docs/api/java/sql/ResultSet.html)**
+    - The ResultSet is a set of results obtained from the database, containing the query results.
+    - In the ResultSet, data is organized into rows and columns.
+    - The result set is typically used in a loop that iterates through the results and retrieves the necessary data.
 
-Nämä luokat ja niiden väliset suhteet on havainnollistettu seuraavassa kaaviossa:
+These classes and their relationships are illustrated in the following diagram:
 
 ```mermaid
 classDiagram
@@ -217,18 +217,17 @@ classDiagram
     PreparedStatement --> ResultSet: executes
 ```
 
+## Part 1: creating a query and handling results *(basics, 20%)*
 
-## Osa 1: Kyselyn luonti ja tulosten käsittely *(perusteet, 20 %)*
+In the first part of the exercise, you need to familiarize yourself with the [**JdbcDemoMain**](./src/main/java/databases/part01/JdbcDemoMain.java) main program class and make two small changes to it.
 
-Tehtävän ensimmäisessä osassa sinun tulee perehtyä [**JdbcDemoMain**](./src/main/java/databases/part01/JdbcDemoMain.java)-pääohjelmaluokkaan ja tehdä siihen kaksi pientä muutosta.
+**Modifying the Query**
 
-**Kyselyn muuttaminen**
+In the given database query, the data is sorted by the `ArtistId` column. Modify the query so that the artists are sorted alphabetically by name.
 
-Annetussa tietokantakyselyssä aineisto on järjestetty `ArtistId`-sarakkeen mukaan. Muuta kyselyä siten, että järjestät artistit aakkosjärjestykseen nimen mukaan.
+**Handling the Result Set**
 
-**Tulosjoukon käsittely**
-
-Pääohjelman alkuperäisessä versiossa jokaisen artistin kohdalla tulostetaan artistin nimi. Muuta ohjelmaa siten, että samalle riville, artistin nimen jälkeen, tulostetaan myös artistin id (`ArtistId`):
+In the original version of the main program, the name of each artist is printed. Modify the program so that on the same line, after the artist's name, the artist's id (`ArtistId`) is also printed:
 
 ```
 A Cor Do Som (43)
@@ -238,61 +237,61 @@ Aaron Goldberg (202)
 Academy of St. Martin in the Fields & Sir Neville Marriner (214)
 ```
 
-💡 *Huomaa, että nyt artistit ovat hieman eri järjestyksessä. AC/DC ei ole enää ensimmäisenä.*
+> [!NOTE]
+> Note that the artists are now in a slightly different order. AC/DC is no longer first.
 
-Tämä osa tehtävästä tarkastetaan tutkimalla ohjelmasi tulostetta, koska `System.out.println`-kutsuihin perustuvan ohjelmalogiikan testaaminen ohjelmallisesti on hankalaa. Ratkaisu rajoittaa myös koodin uudelleenkäyttöä, koska `main`-metodi ei palauta mitään. Jos tarvitset artistien listausta myöhemmin toisessa osassa ohjelmaa, joudut toistamaan samaa logiikkaa, mikä on virhealtista ja tekee koodista hankalammin ylläpidettävää.
+This part of the task will be checked by examining your program's output, as testing program logic based on `System.out.println` calls is difficult programmatically. This solution also limits code reuse because the `main` method does not return anything. If you need the list of artists later in another part of the program, you will have to repeat the same logic, which is error-prone and makes the code harder to maintain.
 
-Parempi tapa on eristää logiikka omiin metodeihinsa, jotta sitä voidaan kutsua ohjelman muista osista tai muista ohjelmista. Ohjelman jakaminen osiin helpottaa siis sen **testaamista** ja tekee koodista **uudelleenkäytettävämpää** ja **ylläpidettävämpää**.
+A better approach is to isolate the logic into its own methods so that it can be called from other parts of the program or other programs. Dividing the program into parts thus makes it easier to **test** and makes the code more **reusable** and **maintainable**.
 
-Tekemäsi muutokset testataan yksikkötesteillä, jotka on kirjoitettu [`JdbcDemoMainTest`-testiluokkaan](./src/test/java/databases/part01/JdbcDemoMainTest.java). Voit suorittaa testit joko koodieditorisi testaustyökalulla ([VS Code](https://code.visualstudio.com/docs/java/java-testing), [Eclipse](https://www.vogella.com/tutorials/JUnitEclipse/article.html)) tai [Gradle-automaatiotyökalulla](https://docs.gradle.org/current/userguide/java_testing.html):
+Your changes in the class will be tested with unit tests written in the [`JdbcDemoMainTest`](./src/test/java/databases/part01/JdbcDemoMainTest.java) test class. You can run the tests using your code editor's testing tool ([VS Code](https://code.visualstudio.com/docs/java/java-testing), [Eclipse](https://www.vogella.com/tutorials/JUnitEclipse/article.html)) or the [Gradle automation tool](https://docs.gradle.org/current/userguide/java_testing.html):
 
 ```sh
 ./gradlew test --tests JdbcDemoMainTest      # unix
 .\gradlew.bat test --tests JdbcDemoMainTest  # windows
 ```
 
-🚀 *Jos olet tarkkana, saatat huomata, että SQLite järjestää oletuksena artistin "AC/DC" virheellisesti ennen artistia "Aaron...". Tämä johtuu siitä, että SQLite:n ORDER BY -vertailu on kirjainkoosta riippuvainen. "Lähes oikea" järjestys kelpaa tämän tehtävän osalta, mutta voit halutessasi järjestää nimet myös kirjainkoosta riippumatta [tämän keskustelun](https://stackoverflow.com/a/2413833) vinkkien mukaan.*
+> [!NOTE]
+> If you are observant, you will notice that SQLite incorrectly sorted the artist "AC/DC" before the artist "Aaron...". This is because SQLite's ORDER BY comparison is case-sensitive. "Almost correct" order is acceptable for this task, but if you wish, you can also sort the names case-insensitively using the tips from [this discussion](https://stackoverflow.com/a/2413833).
 
+## Part 2: object-Oriented approach *(basics, 40%)*
 
-## Osa 2: Olioihin perustuva lähestymistapa *(perusteet, 40 %)*
+In the second part of the exercise, your objective is to utilize object-oriented programming and appropriately divide the database operations into separate classes and methods.
 
-Tehtävän toisessa osassa tehtävänäsi on hyödyntää olio-ohjelmointia ja jakaa tietokantaa käyttävät operaatiot tarkoituksenmukaisesti erillisiin luokkiin ja metodeihin.
-
-Ohjelman rakenteen ja arkkitehtuurin suunnittelemiseksi on hyviä tunnettuja ja [laajasti käytettyjä suunnittelumalleja (pattern)](https://en.wikipedia.org/wiki/Software_design_pattern), joita noudattamalla tulet soveltaneeksi hyviä käytäntöjä ja koodistasi tulee toivottavasti laadukasta. Ohjelmistokehittäjät noudattavat usein samoja suunnittelumalleja, mikä helpottaa muiden kirjoittamien ohjelmien ymmärtämistä ja koodauskäytäntöjen yhtenäistämistä.
+To design the structure and architecture of the program, there are well-known and [widely used design patterns](https://en.wikipedia.org/wiki/Software_design_pattern) that, when followed, will help you apply good practices and hopefully make your code high-quality. Software developers often follow the same design patterns, which makes it easier to understand programs written by others and to standardize coding practices.
 
 **DAO (Data Access Object)**
 
-Tietokantalogiikan eriyttämiseksi muusta koodista käytetään usein ns. DAO-mallia:
+To separate database logic from the rest of the code, the DAO pattern is often used:
 
 > *"A Data Access Object class can provide access to a particular data resource without coupling the resource's API to the business logic. For example, sample application classes access catalog categories, products, and items using DAO interface `CatalogDAO`."*
 >
 > Oracle. Data Access Object - Also Known As DAO. https://www.oracle.com/java/technologies/data-access-object.html
 
-**Tehtävä**
+**Exercise**
 
-Tehtäväpohjan paketissa [databases.part02](./src/main/java/databases/part02/) on valmiina luokat [`Artist`](./src/main/java/databases/part02/Artist.java), [`ArtistDAO`](./src/main/java/databases/part02/ArtistDAO.java) sekä [`ArtistAppMain`](./src/main/java/databases/part02/ArtistAppMain.java):
-
+The task template package [databases.part02](./src/main/java/databases/part02/) includes the classes [`Artist`](./src/main/java/databases/part02/Artist.java), [`ArtistDAO`](./src/main/java/databases/part02/ArtistDAO.java), and [`ArtistAppMain`](./src/main/java/databases/part02/ArtistAppMain.java):
 
 1. **Artist:**
 
-    Tämä luokka edustaa yksittäisiä artisteja sovelluksessa ja on "aivan tavallinen" luokka. Luokassa ei ole tietokanta- eikä käyttöliittymälogiikkaa. Tällaisesta luokasta käytetään usein nimitystä *model* tai *entity*.
+    This class represents individual artists in the application and is a "plain old" class. It does not contain any database or user interface logic. Such a class is often referred to as a *model* or *entity*.
 
 2. **ArtistDAO:**
 
-    ArtistDAO (Data Access Object) -luokka toimii välittäjänä sovelluksen liiketoimintalogiikan ja tietokannan välillä. Sen pääasiallinen tehtävä on tarjota metodeja tietokantaoperaatioihin, jotka liittyvät "Artist" -entiteettiin. Näitä ovat esim artistien luonti, hakeminen, päivittämiseen ja poistamiseen. Tietokantaoperaatioiden toteuttaminen erilliseen Java-luokkaan helpottaa muun sovelluksen työskentelyä tietokannan kanssa, koska muiden luokkien ei tarvitse tuntea taustalla olevaa SQL:ää tai tietokantaan liittyviä yksityiskohtia.
+    The ArtistDAO (Data Access Object) class acts as an intermediary between the application's business logic and the database. Its main task is to provide methods for database operations related to the "Artist" entity. These include creating, retrieving, updating, and deleting artists. Implementing database operations in a separate Java class makes it easier for the rest of the application to work with the database, as other classes do not need to know the underlying SQL or database details.
 
-    💡 *ArtistDAO-luokan rooli on ainoastaan toimia välittäjänä tietokannan ja sovelluslogiikan välillä. DAO-luokissa ei ole lainkaan käyttöliittymään liittyvää logiikkaa, kuten tulosteita.*
+    💡 *The role of the ArtistDAO class is solely to act as an intermediary between the database and the application logic. DAO classes do not contain any user interface logic, such as print statements.*
 
 3. **ArtistAppMain:**
 
-    Tämä luokka toimii uutena pääohjelmana, joka hyödyntää ArtistDAO-luokkaa. Loogisesti tämä luokka vastaa edellisessä osassa käyttämääsi [`JdbcDemoMain`-luokkaa](./src/main/java/databases/part01/JdbcDemoMain.java), mutta tällä kertaa se ei sisällä lainkaan tietokantalogiikkaa.
+    This class serves as the new main program, utilizing the ArtistDAO class. Logically, this class corresponds to the [`JdbcDemoMain`](./src/main/java/databases/part01/JdbcDemoMain.java) class you used in the previous part, but this time it does not contain any database logic.
 
-Yllä esitetty vastuunjakaminen seuraa hyviä periaatteita, jotka tekevät sovelluksen kehittämisestä, ylläpidosta ja skaalautuvuudesta helpompaa. Nyt kun ohjelma on jaettu pienempiin osiin, edellisessä osassa käytetty `main`-metodi saadaan näyttämään paljon yksinkertaisemmalta:
+The division of responsibilities outlined above follows good principles that make the development, maintenance, and scalability of the application easier. Now that the program is divided into smaller parts, the `main` method used in the previous part can be made to look much simpler:
 
 ```java
 /**
- * Tämä metodi vastaa toiminnallisesti osassa 1 käsiteltyä metodia, joka
- * oli paljon pidempi ja monimutkaisempi.
+ * This method functionally corresponds to the method discussed in Part 1,
+ * which was much longer and more complex.
  */
 public static void main(String[] args) {
     ArtistDAO artistDAO = new ArtistDAO(JDBC_URL);
@@ -304,119 +303,109 @@ public static void main(String[] args) {
 }
 ```
 
-Tehtävän tässä osassa sinun tulee toteuttaa [`ArtistDAO`-luokkaan](./src/main/java/databases/part02/ArtistDAO.java) metodit `getArtists` sekä `getArtistById`. Metodien otsikot ja Javadoc-kommentit löytyvät luokasta valmiina.
+In this part of the exercise, you need to implement the `getArtists` and `getArtistById` methods in the [`ArtistDAO`](./src/main/java/databases/part02/ArtistDAO.java) class. The method headers and Javadoc comments are already provided in the class.
 
-Voit suorittaa [`ArtistAppMain`-luokan](./src/main/java/databases/part02/ArtistAppMain.java) koodieditorillasi. Aluksi kyseinen luokka ei tulosta mitään, mutta toteutettuasi DAO-luokan tulosteen pitäisi olla sama kuin tehtävän edellisessä osassa.
+You can run the [`ArtistAppMain`](./src/main/java/databases/part02/ArtistAppMain.java) class in your code editor. Initially, this class will not print anything, but after implementing the DAO class, the output should be the same as in the previous part of the task.
 
-DAO-luokkasi testataan yksikkötesteillä, jotka on kirjoitettu [`ArtistDAOTest`-testiluokkaan](./src/test/java/databases/part02/ArtistDAOTest.java). Voit suorittaa testit joko koodieditorisi testaustyökalulla tai Gradle-automaatiotyökalulla:
+Your DAO class will be tested with unit tests written in the [`ArtistDAOTest`](./src/test/java/databases/part02/ArtistDAOTest.java) test class. You can run the tests using your code editor's testing tool or with Gradle:
 
 ```sh
 ./gradlew test --tests ArtistDAOTest      # unix
 .\gradlew.bat test --tests ArtistDAOTest  # windows
 ```
 
-💡 *Älä muuta valmiiden metodien nimiä, parametreja tai paluuarvojen tyyppejä. Muutokset saattavat aiheuttaa ongelmia testauksen kanssa.*
+> [!IMPORTANT] 
+> Do not change the names, parameters, or return types of the provided methods. Changes may cause issues with testing.
 
-💡 *Yritä välttää toistamasta pidempiä pätkiä samaa koodia molemmissa metodeissa. Saat toteuttaa tehtävänannossa mainittujen luokkien ja metodien lisäksi myös muita luokkia ja metodeja. Esimerkiksi `Database`-luokka yhteyksien avaamiseksi ja sulkemiseksi voi olla hyvä idea. Toisaalta voit toteuttaa erillisen apumetodin resurssien sulkemiseksi. Metodisi saavat myös kutsua toisiaan: voit kutsua `getArtistById`-metodissa `getArtists`-metodia (tehokkuudella ei tässä tehtävässä ole painoarvoa).*
+> [!TIP]
+> Try to avoid repeating longer sections of the same code in both methods. You are allowed to implement additional classes and methods besides those mentioned in the task description. For example, a `Database` class for opening and closing connections might be a good idea. Alternatively, you can implement a separate helper method for closing resources. Your methods can also call each other: you can call the `getArtists` method within the `getArtistById` method (efficiency is not a concern in this task).
 
-💡 *Tulet mahdollisesti huomaamaan, että yhteyksien sulkeminen "käsin" vaatii monta operaatiota ja koodiriviä. Voit vaihtoehtoisesti perehtyä [Javan try-with-resources](https://www.baeldung.com/java-try-with-resources)-syntaksiin, jolla saat suljettua resurssit automaattisesti.*
+> [!TIP]
+> You may find that closing connections "manually" requires many operations and lines of code. Alternatively, you can familiarize yourself with [Java's try-with-resources](https://www.baeldung.com/java-try-with-resources) syntax, which allows you to close resources automatically.
 
-💡 *Testeissä käytetään eri tietokantaa kuin pääohjelmassa. Tutustu tarvittaessa [`TestUtils`-luokkaan](./src/test/java/databases/utils/TestUtils.java) ja sen sisältämiin tietokannan luontikäskyihin.*
+> [!NOTE]
+> The tests use a different database than the main program. If necessary, refer to the [`TestUtils`](./src/test/java/databases/utils/TestUtils.java) class and its database creation commands.
 
+## Part 3: adding, updating, and deleting data *(applying, 40%)*
 
-## Osa 3: Tiedon lisääminen, päivittäminen ja poistaminen *(soveltaminen, 40 %)*
+In the previous parts, we retrieved data using the `executeQuery` method. This time, the goal is to add, update, and delete data using the [`executeUpdate` method](https://docs.oracle.com/javase/8/docs/api/java/sql/PreparedStatement.html#executeUpdate--).
 
-Edellisissä osissa olemme hakeneet tietoa `executeQuery`-metodilla. Tällä kertaa tarkoituksena on lisätä, päivittää ja poistaa tietoa [`executeUpdate`-metodilla](https://docs.oracle.com/javase/8/docs/api/java/sql/PreparedStatement.html#executeUpdate--).
-
-Tämän projektin paketista [databases.part03](./src/main/java/databases/part03/) löytyy luokat [`Album`](./src/main/java/databases/part03/Album.java) sekä [`AlbumDAO`](./src/main/java/databases/part03/AlbumDAO.java). Luokkien roolit noudattavat samaa mallia kuin `Artist` ja `ArtistDAO`. Toteuta [`AlbumDAO`-luokkaan](./src/main/java/databases/part03/AlbumDAO.java) seuraavat operaatiot:
+The project package [databases.part03](./src/main/java/databases/part03/) includes the classes [`Album`](./src/main/java/databases/part03/Album.java) and [`AlbumDAO`](./src/main/java/databases/part03/AlbumDAO.java). The roles of these classes follow the same pattern as `Artist` and `ArtistDAO`. Implement the following operations in the [`AlbumDAO`](./src/main/java/databases/part03/AlbumDAO.java) class:
 
 * `getAlbumsByArtist(Artist artist)`
 * `addAlbum(Album album)`
 * `updateAlbum(Album album)`
 * `deleteAlbum(Album album)`
 
-Metodit löytyvät [`AlbumDAO`-luokasta](./src/main/java/databases/part03/AlbumDAO.java) valmiina ja niiden kommentit kuvailevat tarkemmin kultakin metodilta vaaditut toiminnot.
+The methods are already present in the [`AlbumDAO`](./src/main/java/databases/part03/AlbumDAO.java) class, and their comments describe the required functionalities for each method.
 
+**SQL Injections and Security**
 
-**SQL-injektiot ja tietoturva**
-
-Huomaa, että SQL-kyselyjen muodostaminen merkkijonoja yhdistelemällä aiheuttaa tietoturvaongelmia, kuten [tämä auton rekisterikilpi](https://hackaday.com/wp-content/uploads/2014/04/18mpenleoksq8jpg.jpg) ja oheinen sarjakuva havainnollistavat:
+Note that constructing SQL queries by concatenating strings causes security issues, as illustrated by [this car license plate](https://hackaday.com/wp-content/uploads/2014/04/18mpenleoksq8jpg.jpg) and the accompanying comic:
 
 [![Exploits of a Mom](https://imgs.xkcd.com/comics/exploits_of_a_mom.png)](https://xkcd.com/327/)
 
-*Kuva: Randall Munroe. Exploits of a Mom. [https://xkcd.com/327/](https://xkcd.com/327/). [CC BY-NC 2.5](https://creativecommons.org/licenses/by-nc/2.5/)*
+*Picture: Randall Munroe. Exploits of a Mom. [https://xkcd.com/327/](https://xkcd.com/327/). [CC BY-NC 2.5](https://creativecommons.org/licenses/by-nc/2.5/)*
 
-Muista siis käyttää `PreparedStatement`-luokkaa ja sen `setString`-, `setLong`- ja muita metodeita aina lisätessäsi kyselyihin parametreja. `set...`-metodit huolehtivat siitä, että annettua dataa ei tulkita osaksi kyselyä, eli sitä käsitellään vain datana.
+So remember to use the `PreparedStatement` class and its `setString`, `setLong`, and other methods whenever you add parameters to queries. The `set...` methods ensure that the provided data is not interpreted as part of the query, meaning it is treated only as data.
 
+**Testing the solution**
 
-**Ratkaisun testaaminen**
-
-Albumien käsittelemiseksi ei ole valmista pääohjelmaa, mutta voit halutessasi luoda uuden pääohjelman, muokata edellisen osan ohjelmaa tai hyödyntää [`AlbumDAOTest`-yksikkötestejä](./src/test/java/databases/part03/AlbumDAOTest.java). `AlbumDAOTest` on tekniseltä toteutukseltaan melko erilainen kuin aikaisemmat testit, koska siinä joudutaan alustamaan testitietokanta aina samaan alkupisteeseen ennen testejä. Voit kuitenkin suorittaa sen aikan kuten muutkin testit, joko koodieditorilla tai Gradlella:
+There is no ready-made main program for handling albums, but you can create a new main program, modify the program from the previous part, or use the [`AlbumDAOTest`](./src/test/java/databases/part03/AlbumDAOTest.java) unit tests. `AlbumDAOTest` is technically quite different from the previous tests because it requires initializing the test database to the same starting point before the tests. However, you can run it just like the other tests, either with your code editor or Gradle:
 
 ```
 ./gradlew test --tests AlbumDAOTest      # unix
 .\gradlew.bat test --tests AlbumDAOTest  # windows
 ```
 
-
 ## 🚀 Pro task: Try-with-resources
 
-Yhteyksien sulkeminen "käsin" kutsumalla `close()`-metodia vaatii monta operaatiota ja lukuisia ylimääräisiä koodirivejä. Voit vaihtoehtoisesti perehtyä [Javan try-with-resources](https://www.baeldung.com/java-try-with-resources)-syntaksiin, jolla saat suljettua resurssit automaattisesti.
+Closing connections "manually" by calling the `close()` method requires many operations and numerous extra lines of code. Alternatively, you can familiarize yourself with [Java's try-with-resources](https://www.baeldung.com/java-try-with-resources) syntax, which allows you to close resources automatically.
 
+## 🚀 Pro task: using environment variables
 
+Often, the same code is run in numerous different environments, such as on various developers' personal Windows, Mac, and Linux machines. In addition to developers' personal machines, the same code must work in testing, staging, and production environments, which may be located in the cloud or in an on-premises data center. Different environments use different databases and settings, so they require different connection URLs, usernames, and other variable information to use the databases.
 
-## 🚀 Pro task: ympäristömuuttujan hyödyntäminen
+Environment-specific settings are not written directly into the program code to avoid having to change, compile, and package the code separately for each execution environment. Usernames, passwords, and API keys are also not stored in the program code or version control for security reasons.
 
-Usein samaa koodia suoritetaan lukuisissa erilaisissa ympäristöissä, kuten useiden eri kehittäjien omilla Windows-, Mac- ja Linux- koneilla. Kehittäjien henkilökohtaisten koneiden lisäksi saman koodin täytyy toimia testaus-, staging- ja tuotantoympäristössä, joka saattaa sijaita pilvipalvelussa tai omassa konesalissa. Eri ympäristöissä käytetään eri tietokantoja ja asetuksia, joten niissä tarvitaan eri yhteysosoitteet, käyttäjätunnukset ja muita muuttuvia tietoja esimerkiksi tietokantojen käyttämiseksi.
+A common way to solve the above problems is to set environment-specific and secret values in the operating system's environment variables. Using environment variables, the application can use, for example, development, test, or production databases without changing the program code. Secret information, such as passwords, is also kept out of the program code.
 
-Ympäristökohtaisia asetuksia ei kirjoiteta suoraan ohjelmakoodiin, jotta koodia ei jouduta muuttamaan, kääntämään ja paketoimaan erikseen jokaista suoritusympäristöä varten. Käyttäjätunnuksia, salasanoja ja API-avaimia ei puolestaan haluta tallentaa ohjelmakoodiin tai versionhallintaan tietoturvasyistä.
-
-Yleinen tapa ratkaista edellä esitettyjä ongelmia on asettaa ympäristökohtaisesti vaihtuvat sekä salaiset arvot käyttöjärjestelmän ympäristömuuttujiin. Sovellus voi ympäristömuuttujien avulla käyttää esimerkiksi kehitys-, testi- tai tuotantokantaa ilman, että ohjelmakoodia muutetaan. Salaiset tiedot, kuten salasanat, jäävät myös pois ohjelmakoodista.
-
-Ympäristömuuttujat ovat eräänlainen käyttöjärjestelmäkohtainen Map-tietorakenne. Ympäristömuuttujien arvoja voidaan Javassa lukea `System.getenv`-metodilla esimerkiksi seuraavasti.
+Environment variables are a kind of operating system-specific Map data structure. The values of environment variables can be read in Java using the `System.getenv` method, for example, as follows.
 
 ```diff
-+ // merkkijono luetaan DATABASE-nimisestä ympäristömuuttujasta: 👍
++ // the string is read from an environment variable named DATABASE: 👍
 + private static final String JDBC_URL = System.getenv("DATABASE");
 
-- // kovakoodattu yhteysosoite, jossa ympäristökohtainen osoite ja selkokielinen salasana: 😱
+- // hardcoded connection URL with an environment-specific address and plaintext password: 😱
 - private static final String JDBC_URL = "jdbc:mysql://localhost:3306/Chinook?user=root&password=ThisPasswordWillLeak";
 ```
 
+### Setting environment variables
 
-### Ympäristömuuttujien asettaminen
+You can set an environment variable in VS Code by modifying the ["Run and debug" settings](https://code.visualstudio.com/docs/java/java-debugging#_configuration-options) (see the `env` section). In Eclipse, you can add environment variables to your program following the instructions in this [Stack Overflow thread](https://stackoverflow.com/a/12810433).
 
-Voit asettaa VS Code:ssa ympäristömuuttujan muuttamalla ["Run and debug"-asetuksia](https://code.visualstudio.com/docs/java/java-debugging#_configuration-options) (ks. kohta `env`). Eclipsessä voit lisätä ohjelmallesi ympäristömuuttujia tämän [Stack Overflow -ketjun](https://stackoverflow.com/a/12810433) ohjeiden mukaisesti.
+Alternatively, environment variables can be defined at the system level:
 
-Vaihtoehtoisesti ympäristömuuttujia voidaan määritellä koko järjestelmän tasolla:
+* [Windows](https://www.google.com/search?q=windows+set+environment+variable)
+* [Linux](https://www.google.com/search?q=linux+set+environment+variable)
+* [MacOS](https://www.google.com/search?q=macos+set+environment+variable).
 
-* [Windowsissa](https://www.google.com/search?q=windows+set+environment+variable)
-* [Linuxissa](https://www.google.com/search?q=linux+set+environment+variable)
-* [MacOS:ssa](https://www.google.com/search?q=macos+set+environment+variable).
+## Licenses
 
+### Chinook database
 
-----
+Chinook database is created by [Luis Rocha](https://github.com/lerocha) and it is licensed under the [MIT license](https://github.com/lerocha/chinook-database/blob/master/LICENSE.md).
 
+### SQLite driver's license
 
-# Lisenssit
+Read [Apache License, https://github.com/xerial/sqlite-jdbc/blob/master/LICENSE](https://github.com/xerial/sqlite-jdbc/blob/master/LICENSE).
 
-## Chinook-tietokanta
+### MySQL driver's license
 
-Chinook-tietokannan on luonut [Luis Rocha](https://github.com/lerocha) ja se on lisensoitu [MIT-lisenssillä](https://github.com/lerocha/chinook-database/blob/master/LICENSE.md).
+Read [Preface and Legal Notices, https://dev.mysql.com/doc/connector-j/en/preface.html](https://dev.mysql.com/doc/connector-j/en/preface.html).
 
+### This material
 
-## SQLite-ajurin lisenssi
+This exercise is made by Teemu Havulinna and translated to English by Kalle Ilves and it is licensed under a [Creative Commons BY-NC-SA license](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-Lue [Apache License, https://github.com/xerial/sqlite-jdbc/blob/master/LICENSE](https://github.com/xerial/sqlite-jdbc/blob/master/LICENSE).
-
-
-## MySQL-ajurin lisenssi
-
-Lue [Preface and Legal Notices, https://dev.mysql.com/doc/connector-j/en/preface.html](https://dev.mysql.com/doc/connector-j/en/preface.html).
-
-
-## Tämä oppimateriaali
-
-Tämän tehtävän on kehittänyt Teemu Havulinna ja se on lisensoitu [Creative Commons BY-NC-SA -lisenssillä](https://creativecommons.org/licenses/by-nc-sa/4.0/).
-
-Tehtävänannon, lähdekoodien ja testien toteutuksessa on hyödynnetty ChatGPT 3.5 -kielimallia sekä GitHub copilot -tekoälyavustinta.
+ChatGPT 3.5 language model and GitHub copilot AI assistant has been used to implement the exercise.
